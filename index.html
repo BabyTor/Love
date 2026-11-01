@@ -568,16 +568,12 @@ button:disabled {
     <div id="adminLogin">
       <div class="heart">🔐</div>
       <h2>เข้าสู่ระบบแอดมิน</h2>
-      <p>กรุณาใส่รหัสผ่าน</p>
-
-      <input
-        type="password"
-        id="adminPassword"
-        placeholder="รหัสผ่าน"
-        onkeydown="if(event.key==='Enter') checkAdminPassword()">
-
-      <button onclick="checkAdminPassword()">เข้าสู่ระบบ</button>
+      <p>ใช้อีเมลและรหัสผ่านที่สร้างไว้ใน Supabase</p>
+      <input type="email" id="adminEmail" placeholder="อีเมลแอดมิน" autocomplete="username">
+      <input type="password" id="adminPassword" placeholder="รหัสผ่าน" autocomplete="current-password" onkeydown="if(event.key==='Enter') checkAdminPassword()">
+      <button id="adminLoginButton" onclick="checkAdminPassword()">เข้าสู่ระบบ</button>
       <button class="secondary-btn" onclick="closeAdmin()">ปิด</button>
+      <p id="adminLoginError" class="admin-small"></p>
     </div>
 
     <div id="adminDashboard" style="display:none;">
@@ -586,10 +582,7 @@ button:disabled {
 
       <div id="answerList"></div>
 
-      <button class="secondary-btn" onclick="clearAnswers()">
-        ล้างคำตอบและปลดล็อก
-      </button>
-
+      <button class="secondary-btn" onclick="adminLogout()">ออกจากระบบ</button>
       <button onclick="closeAdmin()">ปิดหน้าต่าง</button>
 
       <p class="admin-small">
@@ -600,19 +593,18 @@ button:disabled {
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+// ตั้งค่า Supabase: ใส่ Publishable key จาก Settings > API Keys (ห้ามใช้ Secret key)
+const SUPABASE_URL = "https://ritqkxmyotzvtcdefnxm.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable__el_Moq2rX_9_PcitHL04A_An4IYPzs";
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+
 const ANSWER_KEY = 'loveAnswers';
 const LOCK_KEY = 'loveAnswerLocked';
-const ADMIN_PASSWORD = '1234';
 
-/* อ่านข้อมูลคำตอบอย่างปลอดภัย */
-function getAnswers() {
-  try {
-    const data = JSON.parse(localStorage.getItem(ANSWER_KEY) || '[]');
-    return Array.isArray(data) ? data : [];
-  } catch (error) {
-    return [];
-  }
+function hasAnsweredOnThisBrowser() {
+  return localStorage.getItem(LOCK_KEY) === 'true';
 }
 
 /* เปิดซองจดหมาย */
@@ -642,76 +634,59 @@ function nextPage(number) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-/* ล็อกปุ่มตอบ */
+/* ล็อก/ปลดล็อกปุ่มตอบในอุปกรณ์นี้ */
 function lockAnswerButtons() {
   document.getElementById('yesButton').disabled = true;
   document.getElementById('noButton').disabled = true;
   document.getElementById('lockedMessage').style.display = 'block';
 }
-
-/* ปลดล็อกปุ่มตอบ */
 function unlockAnswerButtons() {
   document.getElementById('yesButton').disabled = false;
   document.getElementById('noButton').disabled = false;
   document.getElementById('lockedMessage').style.display = 'none';
 }
-
-/*
-  ตรวจจากคำตอบจริงเป็นหลัก
-  ถ้าไม่มีคำตอบ ให้ปลดล็อก แม้มี LOCK_KEY เก่าค้างอยู่
-*/
 function checkAnswerLock() {
-  const answers = getAnswers();
-
-  if (answers.length > 0) {
-    localStorage.setItem(LOCK_KEY, 'true');
-    lockAnswerButtons();
-  } else {
-    localStorage.removeItem(LOCK_KEY);
-    unlockAnswerButtons();
-  }
+  if (hasAnsweredOnThisBrowser()) lockAnswerButtons();
+  else unlockAnswerButtons();
 }
 
-/* บันทึกคำตอบได้ครั้งเดียว */
-function saveAnswer(answer) {
-  const answers = getAnswers();
-
-  /* ตรวจจากรายการคำตอบจริง ไม่ใช้ lock เก่าเพียงอย่างเดียว */
-  if (answers.length > 0) {
-    localStorage.setItem(LOCK_KEY, 'true');
+/* ส่งคำตอบไปเก็บในฐานข้อมูลออนไลน์ */
+async function saveAnswer(answer) {
+  if (hasAnsweredOnThisBrowser()) {
     lockAnswerButtons();
-    alert('หนูได้ส่งคำตอบไปแล้วนะ 💗');
+    alert('อุปกรณ์นี้ส่งคำตอบไปแล้วนะ 💗');
     return false;
   }
-
-  answers.push({
-    answer: answer,
-    date: new Date().toLocaleString('th-TH')
-  });
-
-  localStorage.setItem(ANSWER_KEY, JSON.stringify(answers));
-  localStorage.setItem(LOCK_KEY, 'true');
-
-  lockAnswerButtons();
-
-  return true;
-}
-
-/* ตอบตกลง */
-function yesAnswer() {
-  if (!saveAnswer('ตกลง 💗')) return;
-
-  nextPage(6);
-
-  for (let i = 0; i < 40; i++) {
-    setTimeout(createHeart, i * 100);
+  if (SUPABASE_PUBLISHABLE_KEY.includes('วาง_PUBLISHABLE_KEY')) {
+    alert('ยังไม่ได้ใส่ Supabase Publishable key ในไฟล์เว็บไซต์');
+    return false;
+  }
+  const yes = document.getElementById('yesButton');
+  const no = document.getElementById('noButton');
+  yes.disabled = true; no.disabled = true;
+  try {
+    const { error } = await supabaseClient
+      .from('love_responses')
+      .insert([{ answer }]);
+    if (error) throw error;
+    localStorage.setItem(LOCK_KEY, 'true');
+    lockAnswerButtons();
+    return true;
+  } catch (error) {
+    console.error(error);
+    alert('ส่งคำตอบไม่สำเร็จ ลองใหม่อีกครั้งนะ');
+    unlockAnswerButtons();
+    return false;
   }
 }
 
-/* ขอเวลาคิด */
-function noAnswer() {
-  if (!saveAnswer('ขอเวลาคิดก่อนนะ 🥺')) return;
-
+async function yesAnswer() {
+  if (!await saveAnswer('ตกลง 💗')) return;
+  nextPage(6);
+  for (let i = 0; i < 40; i++) setTimeout(createHeart, i * 100);
+}
+async function noAnswer() {
+  if (!await saveAnswer('ขอเวลาคิดก่อนนะ 🥺')) return;
   nextPage(7);
 }
 
@@ -740,76 +715,70 @@ function openAdmin() {
   document.getElementById('adminOverlay').classList.add('show');
   document.getElementById('adminLogin').style.display = 'block';
   document.getElementById('adminDashboard').style.display = 'none';
+  document.getElementById('adminLoginError').textContent = '';
   document.getElementById('adminPassword').value = '';
+  supabaseClient.auth.getSession().then(({ data }) => {
+    if (data.session) showAdminDashboard();
+  });
 }
-
-/* ปิดหน้าแอดมิน */
 function closeAdmin() {
   document.getElementById('adminOverlay').classList.remove('show');
 }
-
-/* ตรวจรหัสผ่าน */
-function checkAdminPassword() {
+async function checkAdminPassword() {
+  const email = document.getElementById('adminEmail').value.trim();
   const password = document.getElementById('adminPassword').value;
-
-  if (password === ADMIN_PASSWORD) {
-    document.getElementById('adminLogin').style.display = 'none';
-    document.getElementById('adminDashboard').style.display = 'block';
-    showAnswers();
-  } else {
-    alert('รหัสผ่านไม่ถูกต้อง 💔');
+  const errorBox = document.getElementById('adminLoginError');
+  errorBox.textContent = '';
+  const button = document.getElementById('adminLoginButton');
+  button.disabled = true;
+  try {
+    const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+    await showAdminDashboard();
+  } catch (error) {
+    errorBox.textContent = 'เข้าสู่ระบบไม่สำเร็จ กรุณาตรวจสอบอีเมลและรหัสผ่าน';
+  } finally {
+    button.disabled = false;
   }
 }
-
-/* ป้องกัน HTML แปลกปลอมในข้อมูล */
+async function showAdminDashboard() {
+  document.getElementById('adminLogin').style.display = 'none';
+  document.getElementById('adminDashboard').style.display = 'block';
+  await showAnswers();
+}
 function escapeHTML(value) {
   return String(value).replace(/[&<>"']/g, char => ({
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    '"': '&quot;',
-    "'": '&#039;'
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
   })[char]);
 }
-
-/* แสดงคำตอบ */
-function showAnswers() {
+async function showAnswers() {
   const container = document.getElementById('answerList');
-  const answers = getAnswers();
-
-  if (answers.length === 0) {
-    container.innerHTML = `
-      <div class="admin-answer">
-        <p>ยังไม่มีคำตอบจากหนูเลย 💗</p>
-      </div>
-    `;
+  container.innerHTML = '<p>กำลังโหลดคำตอบ...</p>';
+  const { data, error } = await supabaseClient
+    .from('love_responses')
+    .select('answer, created_at')
+    .order('created_at', { ascending: false });
+  if (error) {
+    container.innerHTML = '<p>โหลดคำตอบไม่สำเร็จ กรุณาเข้าสู่ระบบแอดมินอีกครั้ง</p>';
+    console.error(error);
     return;
   }
-
-  container.innerHTML = answers.map((item, index) => `
+  if (!data || data.length === 0) {
+    container.innerHTML = '<div class="admin-answer"><p>ยังไม่มีคำตอบจากหนูเลย 💗</p></div>';
+    return;
+  }
+  container.innerHTML = data.map((item, index) => `
     <div class="admin-answer">
-      <p><strong>คำตอบครั้งที่ ${index + 1}</strong></p>
+      <p><strong>คำตอบครั้งที่ ${data.length - index}</strong></p>
       <p>คำตอบ: ${escapeHTML(item.answer)}</p>
-      <p>วันที่และเวลา: ${escapeHTML(item.date)}</p>
-    </div>
-  `).join('');
+      <p>วันที่และเวลา: ${escapeHTML(new Date(item.created_at).toLocaleString('th-TH'))}</p>
+    </div>`).join('');
 }
-
-/* ล้างคำตอบและปลดล็อก */
-function clearAnswers() {
-  const confirmed = confirm(
-    'ต้องการล้างคำตอบและปลดล็อกให้ตอบใหม่ใช่ไหม?'
-  );
-
-  if (!confirmed) return;
-
-  localStorage.removeItem(ANSWER_KEY);
-  localStorage.removeItem(LOCK_KEY);
-
-  unlockAnswerButtons();
-  showAnswers();
-
-  alert('ล้างคำตอบและปลดล็อกเรียบร้อยแล้ว 💗');
+async function adminLogout() {
+  await supabaseClient.auth.signOut();
+  document.getElementById('adminDashboard').style.display = 'none';
+  document.getElementById('adminLogin').style.display = 'block';
+  document.getElementById('adminPassword').value = '';
 }
 
 /* เปิด YouTube */
