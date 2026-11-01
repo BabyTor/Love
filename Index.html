@@ -1,0 +1,828 @@
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ถึงหนูคนพิเศษ 💗</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Itim&family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<style>
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: 'Prompt', sans-serif;
+  background: linear-gradient(135deg, #ffdce8, #fff0f5, #ffe3ed);
+  color: #805268;
+  overflow-x: hidden;
+}
+
+.page {
+  display: none;
+  width: 100%;
+  min-height: 100vh;
+  padding: 35px 18px;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  text-align: center;
+  animation: fadeIn .8s ease;
+}
+
+.page.active { display: flex; }
+
+.card {
+  width: 100%;
+  max-width: 550px;
+  padding: 30px 24px;
+  background: rgba(255,255,255,.92);
+  border-radius: 25px;
+  box-shadow: 0 10px 35px rgba(220,100,150,.15);
+}
+
+h1 {
+  color: #e75c91;
+  font-size: 30px;
+  margin: 12px 0;
+  font-family: 'Itim', cursive;
+}
+
+h2 {
+  color: #df6797;
+  font-size: 21px;
+  font-weight: 500;
+  font-family: 'Itim', cursive;
+}
+
+p {
+  font-size: 16px;
+  line-height: 2;
+  margin: 18px 0;
+}
+
+.heart {
+  font-size: 55px;
+  animation: pulse 1.3s infinite;
+}
+
+button {
+  border: none;
+  border-radius: 30px;
+  padding: 13px 25px;
+  margin: 10px 5px;
+  background: linear-gradient(135deg, #ff8fb5, #ec6198);
+  color: white;
+  font-family: 'Prompt', sans-serif;
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow: 0 5px 15px rgba(220,80,130,.2);
+  transition: transform .2s;
+}
+
+button:hover { transform: scale(1.04); }
+
+button:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.secondary-btn {
+  background: #f7c1d5;
+  color: #a34e72;
+}
+
+.photo {
+  width: 100%;
+  max-width: 330px;
+  height: 210px;
+  object-fit: cover;
+  border-radius: 18px;
+  margin: 15px auto;
+  box-shadow: 0 5px 15px rgba(220,80,130,.15);
+}
+
+.floating-heart {
+  position: fixed;
+  bottom: -40px;
+  pointer-events: none;
+  z-index: 200;
+  animation: floatUp linear forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse {
+  0%,100% { transform: scale(1); }
+  50% { transform: scale(1.12); }
+}
+
+@keyframes floatUp {
+  from { transform: translateY(0) rotate(0); opacity: 1; }
+  to { transform: translateY(-110vh) rotate(30deg); opacity: 0; }
+}
+
+/* ซองจดหมาย */
+.envelope-wrapper {
+  margin: 45px auto 25px;
+  width: 260px;
+  height: 175px;
+  position: relative;
+  cursor: pointer;
+  perspective: 1000px;
+}
+
+.envelope {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  background: #ff9fbd;
+  border-radius: 8px;
+  box-shadow: 0 8px 20px rgba(220,80,130,.2);
+}
+
+.envelope-back {
+  position: absolute;
+  inset: 0;
+  background: #ffb5cb;
+  border-radius: 8px;
+}
+
+.envelope-letter {
+  position: absolute;
+  left: 15px;
+  right: 15px;
+  bottom: 10px;
+  height: 140px;
+  background: #fff8fb;
+  border-radius: 8px;
+  z-index: 2;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  transition: transform 1s ease;
+  box-shadow: 0 2px 8px rgba(0,0,0,.08);
+}
+
+.envelope-letter span {
+  color: #e75c91;
+  font-size: 22px;
+}
+
+.envelope-letter small {
+  color: #b17b91;
+  font-size: 14px;
+}
+
+.envelope-flap {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  border-left: 130px solid transparent;
+  border-right: 130px solid transparent;
+  border-top: 100px solid #ff80aa;
+  transform-origin: top center;
+  transition: transform .8s ease;
+  z-index: 4;
+}
+
+.envelope-front {
+  position: absolute;
+  inset: 0;
+  background: #ffb5cb;
+  clip-path: polygon(0 0, 50% 55%, 100% 0, 100% 100%, 0 100%);
+  border-radius: 8px;
+  z-index: 3;
+}
+
+.envelope-heart {
+  position: absolute;
+  top: 65px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 35px;
+  z-index: 5;
+  transition: .4s;
+}
+
+.envelope-wrapper.opened .envelope-flap {
+  transform: rotateX(180deg);
+  z-index: 1;
+}
+
+.envelope-wrapper.opened .envelope-letter {
+  transform: translateY(-110px);
+}
+
+.envelope-wrapper.opened .envelope-heart { opacity: 0; }
+
+.envelope-hint {
+  color: #e75c91;
+  font-size: 18px;
+  animation: pulse 1.2s infinite;
+}
+
+.start-btn {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .8s ease;
+}
+
+.page.opened .start-btn {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ปุ่มแอดมิน */
+.admin-heart {
+  position: fixed;
+  right: 15px;
+  bottom: 15px;
+  z-index: 500;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  margin: 0;
+  border-radius: 50%;
+  background: rgba(255,255,255,.92);
+  color: #e75c91;
+  font-size: 20px;
+}
+
+/* หน้าต่างแอดมิน */
+.admin-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(80,35,55,.48);
+  justify-content: center;
+  align-items: center;
+  padding: 18px;
+}
+
+.admin-overlay.show { display: flex; }
+
+.admin-box {
+  width: 100%;
+  max-width: 430px;
+  max-height: 85vh;
+  overflow-y: auto;
+  background: #fff8fb;
+  border-radius: 22px;
+  padding: 25px 20px;
+  text-align: center;
+}
+
+.admin-box input {
+  width: 100%;
+  padding: 13px;
+  border: 1px solid #f1bfd1;
+  border-radius: 12px;
+  font-family: 'Prompt', sans-serif;
+  font-size: 16px;
+  margin: 10px 0;
+}
+
+.admin-answer {
+  background: #ffe8f0;
+  border-radius: 14px;
+  padding: 15px;
+  margin: 12px 0;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+
+.admin-answer p {
+  margin: 7px 0;
+  font-size: 14px;
+}
+
+.admin-small {
+  font-size: 12px;
+  color: #a77b8d;
+}
+
+@media (max-width:480px) {
+  h1 { font-size: 27px; }
+  p { font-size: 15px; }
+  .card { padding: 25px 17px; }
+}
+</style>
+</head>
+
+<body>
+
+<button class="admin-heart" onclick="openAdmin()" aria-label="เปิดหน้าแอดมิน">💗</button>
+
+<!-- หน้า 1 -->
+<div class="page active" id="page1">
+  <div class="card">
+    <div class="heart">💗</div>
+    <h1>มีจดหมายถึงหนู</h1>
+    <h2>To: หนูคนพิเศษ 💌</h2>
+    <p>พี่มีอะไรอยากบอกหนูด้วยนะ</p>
+
+    <div class="envelope-wrapper" id="envelope" onclick="openEnvelope()">
+      <div class="envelope">
+        <div class="envelope-back"></div>
+        <div class="envelope-letter">
+          <span>ถึงหนู 💗</span>
+          <small>จดหมายจากพี่</small>
+        </div>
+        <div class="envelope-flap"></div>
+        <div class="envelope-front"></div>
+        <div class="envelope-heart">💌</div>
+      </div>
+    </div>
+
+    <p class="envelope-hint" id="envelopeHint">👆 ลองกดที่ซองจดหมายดูสิ</p>
+    <button class="start-btn" onclick="nextPage(2)">เปิดอ่านข้อความของพี่ 💕</button>
+  </div>
+</div>
+
+<!-- หน้า 2 -->
+<div class="page" id="page2">
+  <div class="card">
+    <div class="heart">💞</div>
+    <h1>Happy Anniversary</h1>
+    <h2>2 เดือนแล้วนะหนู 🥺</h2>
+
+    <img class="photo"
+      src="https://images.unsplash.com/photo-1518199266791-5375a83190b7?w=800"
+      alt="ดอกไม้สีชมพู">
+
+    <p>
+      เผลอแป๊บเดียวก็ผ่านมาตั้ง 2 เดือนแล้วนะหนู 🥺
+      ขอบคุณที่เข้ามาเป็นส่วนหนึ่งในชีวิตพี่
+      ขอบคุณทุกข้อความ ทุกความใส่ใจ
+      และทุกช่วงเวลาที่ทำให้พี่ยิ้มได้
+    </p>
+
+    <p>
+      ถึงเวลาจะผ่านไปแค่ 2 เดือน
+      พี่ก็อยากมีหนูอยู่ในทุก ๆ เดือนต่อจากนี้
+      อยากค่อย ๆ เรียนรู้กัน เติบโตไปด้วยกัน
+      และสร้างความทรงจำดี ๆ อีกเยอะเลยนะ 💞
+    </p>
+
+    <h2>พี่รักหนูนะ 💗</h2>
+    <p>Happy Anniversary 2 Months ♡</p>
+    <button onclick="nextPage(3)">อ่านข้อความต่อ 💌</button>
+  </div>
+</div>
+
+<!-- หน้า 3 -->
+<div class="page" id="page3">
+  <div class="card">
+    <div class="heart">🥺</div>
+    <h1>หนูรู้ไหม...</h1>
+
+    <p>
+      ตั้งแต่มีหนูเข้ามาในชีวิตพี่
+      หลาย ๆ อย่างก็เปลี่ยนไปในทางที่ดีขึ้น
+    </p>
+
+    <p>
+      พี่เริ่มมีคนที่อยากคุยด้วยทุกวัน
+      มีคนที่ทำให้พี่ยิ้มได้แม้ในวันที่เหนื่อย
+      แค่เห็นข้อความจากหนู พี่ก็รู้สึกดีขึ้นแล้ว
+    </p>
+
+    <p>
+      บางครั้งพี่อาจจะไม่ได้พูดออกไปตรง ๆ
+      แต่พี่อยากให้หนูรู้ไว้นะว่า
+      หนูมีความหมายกับพี่มากจริง ๆ
+    </p>
+
+    <p>
+      ถึงพี่จะเป็นคนไม่ค่อยพูด
+      หรืออาจจะชวนคุยไม่เก่ง
+      บางครั้งพี่อาจไม่รู้ว่าจะพูดอะไรดี
+      แต่หนูรู้ไว้นะว่าพี่พยายามใส่ใจหนูอยู่ตลอด
+      พี่อาจไม่ได้แสดงออกเก่ง
+      แต่ทุกอย่างที่พี่ทำ พี่ตั้งใจทำให้หนูจริง ๆ นะ 🥺💗
+    </p>
+
+    <p>
+      อีกอย่างหนึ่ง พี่เป็นคนคิดมากนะหนู
+      บางครั้งพี่ก็เผลอคิดไปไกล
+      จนอดสงสัยไม่ได้ว่า สิ่งที่เรามีอยู่ตอนนี้
+      มันเป็นเรื่องจริงใช่ไหม
+      หนูยังอยู่ตรงนี้กับพี่จริง ๆ ใช่ไหม
+      หรือบางทีหนูอาจมีใครอีกคนที่คุยด้วยอยู่แล้ว
+    </p>
+
+    <p>
+      พี่รู้ว่าบางครั้งความคิดพวกนี้อาจเป็นแค่สิ่งที่พี่คิดไปเอง
+      แต่พี่ก็อดกังวลไม่ได้
+      เพราะหนูมีความหมายกับพี่มากจริง ๆ
+    </p>
+
+    <p>
+      สุดท้ายนี้ พี่อยากขอบคุณหนูนะ
+      ขอบคุณที่เข้ามาในชีวิตพี่
+      พี่มีความสุขมาก ๆ ที่มีหนูอยู่ตรงนี้
+      ไม่รู้ว่าหนูจะรู้ตัวไหมว่าหนูทำให้พี่ยิ้มได้มากแค่ไหน
+      แค่มีหนูอยู่ข้าง ๆ พี่ก็รู้สึกว่าโลกใบนี้น่าอยู่ขึ้นเยอะเลย 💗
+    </p>
+
+    <h2>ขอบคุณที่เข้ามาเป็นความสุขของพี่นะ 💗</h2>
+    <button onclick="nextPage(4)">อ่านข้อความต่อ 💌</button>
+  </div>
+</div>
+
+<!-- หน้า 4 -->
+<div class="page" id="page4">
+  <div class="card">
+    <div class="heart">💓</div>
+    <h1>พี่มีเรื่องจะสารภาพ</h1>
+
+    <img class="photo"
+      src="https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?w=800"
+      alt="คู่รักจับมือกัน">
+
+    <p>
+      พี่ไม่รู้ว่าควรเริ่มพูดยังไงดี
+      แต่มีเรื่องหนึ่งที่พี่อยากบอกหนูมานานแล้ว
+    </p>
+
+    <p>
+      พี่รู้สึกดีกับหนูมาก ๆ
+      อยากดูแล อยากอยู่ข้าง ๆ
+      อยากเป็นคนที่ทำให้หนูยิ้มได้ในทุก ๆ วัน
+    </p>
+
+    <h2>พี่อยากมีหนูอยู่ในอนาคตของพี่นะ 💗</h2>
+    <button onclick="nextPage(5)">มีอะไรจะถามหนู 💌</button>
+  </div>
+</div>
+
+<!-- หน้า 5 -->
+<div class="page" id="page5">
+  <div class="card">
+    <div class="heart">💗</div>
+    <h1>หนู...</h1>
+    <h2>เป็นแฟนกับพี่ไหม? 🥺</h2>
+
+    <p>
+      พี่อยากจับมือหนูเดินไปด้วยกัน
+      อยากมีหนูในทุก ๆ วัน
+      อยากสร้างความทรงจำดี ๆ ไปด้วยกัน
+    </p>
+
+    <p>หนูจะให้โอกาสพี่ได้ดูแลหนูไหม 💕</p>
+
+    <button id="yesButton" onclick="yesAnswer()">ตกลง 💗</button>
+    <button id="noButton" class="secondary-btn" onclick="noAnswer()">ขอเวลาคิดก่อนนะ 🥺</button>
+
+    <p id="lockedMessage" class="admin-small" style="display:none;">
+      หนูได้ส่งคำตอบไปแล้วนะ 💗
+    </p>
+  </div>
+</div>
+
+<!-- หน้า 6 -->
+<div class="page" id="page6">
+  <div class="card">
+    <div class="heart">💖</div>
+    <h1>เย้! หนูตกลงแล้ว 💗</h1>
+
+    <p>
+      ขอบคุณนะหนู 🥺
+      พี่ดีใจมาก ๆ เลย
+    </p>
+
+    <p>
+      ต่อจากนี้เรามาดูแลกันไปนาน ๆ นะ
+      มีอะไรเราค่อย ๆ คุยกัน
+      มีความสุขไปด้วยกันนะ
+    </p>
+
+    <h2>พี่รักหนูที่สุดเลย 💕</h2>
+    <button onclick="nextPage(8)">ไปดูเซอร์ไพรส์กัน 💌</button>
+  </div>
+</div>
+
+<!-- หน้า 7 -->
+<div class="page" id="page7">
+  <div class="card">
+    <div class="heart">🌷</div>
+    <h1>ไม่เป็นไรนะหนู</h1>
+
+    <p>
+      พี่เข้าใจนะ ถ้าหนูยังไม่พร้อมตอบตอนนี้
+      พี่ไม่อยากให้หนูรู้สึกกดดันเลย
+    </p>
+
+    <p>
+      ค่อย ๆ คิด ค่อย ๆ เรียนรู้กันไปก็ได้
+      พี่อยากให้หนูมีความสุขและสบายใจ
+    </p>
+
+    <h2>ขอบคุณที่รับฟังความรู้สึกของพี่นะ 💗</h2>
+
+    <p>
+      ไม่ว่าคำตอบจะเป็นยังไง
+      พี่ก็ยังขอบคุณที่มีหนูเข้ามาในชีวิตนะ
+    </p>
+  </div>
+</div>
+
+<!-- หน้า 8 -->
+<div class="page" id="page8">
+  <div class="card">
+    <div class="heart">🎁</div>
+    <h1>ถึงหนูคนพิเศษ</h1>
+
+    <p>
+      ไม่ว่าต่อจากนี้จะเป็นยังไง
+      พี่ก็อยากขอบคุณหนูที่เข้ามาในชีวิตพี่นะ
+    </p>
+
+    <p>
+      พี่หวังว่าข้อความทั้งหมดนี้
+      จะทำให้หนูรู้ว่าพี่รู้สึกกับหนูมากแค่ไหน
+    </p>
+
+    <h2>หนูเป็นความสุขของพี่นะ 💗</h2>
+
+    <button onclick="openSurprise()">💌 เปิดเซอร์ไพรส์ให้หนู</button>
+    <p>ด้วยรัก จากพี่ 💕</p>
+  </div>
+</div>
+
+<!-- หน้าต่างแอดมิน -->
+<div class="admin-overlay" id="adminOverlay">
+  <div class="admin-box">
+
+    <div id="adminLogin">
+      <div class="heart">🔐</div>
+      <h2>เข้าสู่ระบบแอดมิน</h2>
+      <p>กรุณาใส่รหัสผ่าน</p>
+
+      <input
+        type="password"
+        id="adminPassword"
+        placeholder="รหัสผ่าน"
+        onkeydown="if(event.key==='Enter') checkAdminPassword()">
+
+      <button onclick="checkAdminPassword()">เข้าสู่ระบบ</button>
+      <button class="secondary-btn" onclick="closeAdmin()">ปิด</button>
+    </div>
+
+    <div id="adminDashboard" style="display:none;">
+      <h2>💗 ระบบแอดมิน</h2>
+      <p>คำตอบจากหนู</p>
+
+      <div id="answerList"></div>
+
+      <button class="secondary-btn" onclick="clearAnswers()">
+        ล้างคำตอบและปลดล็อก
+      </button>
+
+      <button onclick="closeAdmin()">ปิดหน้าต่าง</button>
+
+      <p class="admin-small">
+        เมื่อล้างคำตอบแล้ว หนูจะสามารถตอบใหม่ได้หนึ่งครั้ง
+      </p>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const ANSWER_KEY = 'loveAnswers';
+const LOCK_KEY = 'loveAnswerLocked';
+const ADMIN_PASSWORD = '1234';
+
+/* อ่านข้อมูลคำตอบอย่างปลอดภัย */
+function getAnswers() {
+  try {
+    const data = JSON.parse(localStorage.getItem(ANSWER_KEY) || '[]');
+    return Array.isArray(data) ? data : [];
+  } catch (error) {
+    return [];
+  }
+}
+
+/* เปิดซองจดหมาย */
+function openEnvelope() {
+  const envelope = document.getElementById('envelope');
+  const page = document.getElementById('page1');
+  const hint = document.getElementById('envelopeHint');
+
+  if (envelope.classList.contains('opened')) return;
+
+  envelope.classList.add('opened');
+  hint.innerHTML = '💗 จดหมายฉบับนี้เขียนให้หนูคนเดียวนะ';
+
+  setTimeout(() => page.classList.add('opened'), 900);
+}
+
+/* เปลี่ยนหน้า: ไม่ผูกกับสถานะล็อกคำตอบ */
+function nextPage(number) {
+  document.querySelectorAll('.page').forEach(page => {
+    page.classList.remove('active');
+  });
+
+  const target = document.getElementById('page' + number);
+
+  if (target) target.classList.add('active');
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* ล็อกปุ่มตอบ */
+function lockAnswerButtons() {
+  document.getElementById('yesButton').disabled = true;
+  document.getElementById('noButton').disabled = true;
+  document.getElementById('lockedMessage').style.display = 'block';
+}
+
+/* ปลดล็อกปุ่มตอบ */
+function unlockAnswerButtons() {
+  document.getElementById('yesButton').disabled = false;
+  document.getElementById('noButton').disabled = false;
+  document.getElementById('lockedMessage').style.display = 'none';
+}
+
+/*
+  ตรวจจากคำตอบจริงเป็นหลัก
+  ถ้าไม่มีคำตอบ ให้ปลดล็อก แม้มี LOCK_KEY เก่าค้างอยู่
+*/
+function checkAnswerLock() {
+  const answers = getAnswers();
+
+  if (answers.length > 0) {
+    localStorage.setItem(LOCK_KEY, 'true');
+    lockAnswerButtons();
+  } else {
+    localStorage.removeItem(LOCK_KEY);
+    unlockAnswerButtons();
+  }
+}
+
+/* บันทึกคำตอบได้ครั้งเดียว */
+function saveAnswer(answer) {
+  const answers = getAnswers();
+
+  /* ตรวจจากรายการคำตอบจริง ไม่ใช้ lock เก่าเพียงอย่างเดียว */
+  if (answers.length > 0) {
+    localStorage.setItem(LOCK_KEY, 'true');
+    lockAnswerButtons();
+    alert('หนูได้ส่งคำตอบไปแล้วนะ 💗');
+    return false;
+  }
+
+  answers.push({
+    answer: answer,
+    date: new Date().toLocaleString('th-TH')
+  });
+
+  localStorage.setItem(ANSWER_KEY, JSON.stringify(answers));
+  localStorage.setItem(LOCK_KEY, 'true');
+
+  lockAnswerButtons();
+
+  return true;
+}
+
+/* ตอบตกลง */
+function yesAnswer() {
+  if (!saveAnswer('ตกลง 💗')) return;
+
+  nextPage(6);
+
+  for (let i = 0; i < 40; i++) {
+    setTimeout(createHeart, i * 100);
+  }
+}
+
+/* ขอเวลาคิด */
+function noAnswer() {
+  if (!saveAnswer('ขอเวลาคิดก่อนนะ 🥺')) return;
+
+  nextPage(7);
+}
+
+/* สร้างหัวใจลอย */
+function createHeart() {
+  const heart = document.createElement('div');
+
+  heart.className = 'floating-heart';
+
+  const hearts = ['💗', '💕', '💖', '💘', '🌸'];
+  heart.innerHTML = hearts[Math.floor(Math.random() * hearts.length)];
+
+  heart.style.left = Math.random() * 100 + 'vw';
+  heart.style.fontSize = (20 + Math.random() * 25) + 'px';
+  heart.style.animationDuration = (3 + Math.random() * 3) + 's';
+
+  document.body.appendChild(heart);
+
+  setTimeout(() => heart.remove(), 6000);
+}
+
+setInterval(createHeart, 1000);
+
+/* เปิดหน้าแอดมิน */
+function openAdmin() {
+  document.getElementById('adminOverlay').classList.add('show');
+  document.getElementById('adminLogin').style.display = 'block';
+  document.getElementById('adminDashboard').style.display = 'none';
+  document.getElementById('adminPassword').value = '';
+}
+
+/* ปิดหน้าแอดมิน */
+function closeAdmin() {
+  document.getElementById('adminOverlay').classList.remove('show');
+}
+
+/* ตรวจรหัสผ่าน */
+function checkAdminPassword() {
+  const password = document.getElementById('adminPassword').value;
+
+  if (password === ADMIN_PASSWORD) {
+    document.getElementById('adminLogin').style.display = 'none';
+    document.getElementById('adminDashboard').style.display = 'block';
+    showAnswers();
+  } else {
+    alert('รหัสผ่านไม่ถูกต้อง 💔');
+  }
+}
+
+/* ป้องกัน HTML แปลกปลอมในข้อมูล */
+function escapeHTML(value) {
+  return String(value).replace(/[&<>"']/g, char => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;'
+  })[char]);
+}
+
+/* แสดงคำตอบ */
+function showAnswers() {
+  const container = document.getElementById('answerList');
+  const answers = getAnswers();
+
+  if (answers.length === 0) {
+    container.innerHTML = `
+      <div class="admin-answer">
+        <p>ยังไม่มีคำตอบจากหนูเลย 💗</p>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = answers.map((item, index) => `
+    <div class="admin-answer">
+      <p><strong>คำตอบครั้งที่ ${index + 1}</strong></p>
+      <p>คำตอบ: ${escapeHTML(item.answer)}</p>
+      <p>วันที่และเวลา: ${escapeHTML(item.date)}</p>
+    </div>
+  `).join('');
+}
+
+/* ล้างคำตอบและปลดล็อก */
+function clearAnswers() {
+  const confirmed = confirm(
+    'ต้องการล้างคำตอบและปลดล็อกให้ตอบใหม่ใช่ไหม?'
+  );
+
+  if (!confirmed) return;
+
+  localStorage.removeItem(ANSWER_KEY);
+  localStorage.removeItem(LOCK_KEY);
+
+  unlockAnswerButtons();
+  showAnswers();
+
+  alert('ล้างคำตอบและปลดล็อกเรียบร้อยแล้ว 💗');
+}
+
+/* เปิด YouTube */
+function openSurprise() {
+  window.open(
+    'https://www.youtube.com/watch?v=N9bashij_7c',
+    '_blank'
+  );
+}
+
+/* ตรวจสอบสถานะเมื่อเปิดเว็บ */
+checkAnswerLock();
+</script>
+
+</body>
+</html>
