@@ -597,7 +597,7 @@ button:disabled {
 <script>
 // ตั้งค่า Supabase: ใส่ Publishable key จาก Settings > API Keys (ห้ามใช้ Secret key)
 const SUPABASE_URL = "https://ritqkxmyotzvtcdefnxm.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "sb_publishable__el_Moq2rX_9_PcitHL04A_An4IYPzs";
+const SUPABASE_PUBLISHABLE_KEY = "วาง_PUBLISHABLE_KEY_ตรงนี้";
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 
 const ANSWER_KEY = 'loveAnswers';
@@ -756,7 +756,7 @@ async function showAnswers() {
   container.innerHTML = '<p>กำลังโหลดคำตอบ...</p>';
   const { data, error } = await supabaseClient
     .from('love_responses')
-    .select('answer, created_at')
+    .select('id, answer, created_at')
     .order('created_at', { ascending: false });
   if (error) {
     container.innerHTML = '<p>โหลดคำตอบไม่สำเร็จ กรุณาเข้าสู่ระบบแอดมินอีกครั้ง</p>';
@@ -772,7 +772,27 @@ async function showAnswers() {
       <p><strong>คำตอบครั้งที่ ${data.length - index}</strong></p>
       <p>คำตอบ: ${escapeHTML(item.answer)}</p>
       <p>วันที่และเวลา: ${escapeHTML(new Date(item.created_at).toLocaleString('th-TH'))}</p>
+      <button class="secondary-btn" onclick="deleteAnswer(${Number(item.id)})">ลบคำตอบนี้</button>
     </div>`).join('');
+}
+async function deleteAnswer(id) {
+  if (!Number.isInteger(id) || id <= 0) return;
+  if (!confirm('ต้องการลบคำตอบนี้ใช่ไหม? เมื่อลบแล้วจะกู้คืนไม่ได้')) return;
+  const { data: sessionData } = await supabaseClient.auth.getSession();
+  if (!sessionData.session) {
+    alert('กรุณาเข้าสู่ระบบแอดมินก่อน');
+    return;
+  }
+  const { error } = await supabaseClient
+    .from('love_responses')
+    .delete()
+    .eq('id', id);
+  if (error) {
+    console.error(error);
+    alert('ลบไม่สำเร็จ กรุณาตรวจสอบสิทธิ์ DELETE ใน Supabase');
+    return;
+  }
+  await showAnswers();
 }
 async function adminLogout() {
   await supabaseClient.auth.signOut();
