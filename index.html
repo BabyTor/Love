@@ -597,8 +597,36 @@ button:disabled {
 <script>
 // ตั้งค่า Supabase: ใส่ Publishable key จาก Settings > API Keys (ห้ามใช้ Secret key)
 const SUPABASE_URL = "https://ritqkxmyotzvtcdefnxm.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "sb_publishable__el_Moq2rX_9_PcitHL04A_An4IYPzs";
+const SUPABASE_PUBLISHABLE_KEY = "วาง_PUBLISHABLE_KEY_ตรงนี้";
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+
+// URL เว็บไซต์จริง: https://babytor.github.io/Love/
+// ใน Supabase > Authentication > URL Configuration ให้ตั้ง Site URL และ Redirect URLs เป็น URL นี้
+// รองรับลิงก์กู้คืนรหัสผ่านจาก Supabase บน GitHub Pages
+// เมื่อเปิดลิงก์ recovery แล้ว ระบบจะให้ตั้งรหัสผ่านใหม่ทันที
+supabaseClient.auth.onAuthStateChange(async (event, session) => {
+  if (event === 'PASSWORD_RECOVERY' && session) {
+    const newPassword = window.prompt('ตั้งรหัสผ่าน Admin ใหม่ (อย่างน้อย 6 ตัวอักษร)');
+    if (!newPassword) {
+      alert('ยังไม่ได้เปลี่ยนรหัสผ่าน กรุณาขอลิงก์รีเซ็ตใหม่');
+      return;
+    }
+    if (newPassword.length < 6) {
+      alert('รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร กรุณาเปิดลิงก์ใหม่เพื่อลองอีกครั้ง');
+      return;
+    }
+    const { error } = await supabaseClient.auth.updateUser({ password: newPassword });
+    if (error) {
+      alert('เปลี่ยนรหัสผ่านไม่สำเร็จ: ' + error.message);
+      console.error('Password recovery error:', error);
+      return;
+    }
+    alert('เปลี่ยนรหัสผ่านสำเร็จแล้ว 💗 กลับไปเข้าสู่ระบบ Admin ด้วยรหัสผ่านใหม่ได้เลย');
+    await supabaseClient.auth.signOut();
+    // ล้าง token จาก URL หลังเปลี่ยนรหัสผ่านสำเร็จ
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }
+});
 
 const ANSWER_KEY = 'loveAnswers';
 const LOCK_KEY = 'loveAnswerLocked';
